@@ -7,7 +7,7 @@ frontend/.env
 backend/.env
 
 # Uploaded files
-backend/uploads
+/backend/uploads/*
 
 # Build outputs
 frontend/.next
