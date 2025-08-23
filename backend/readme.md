@@ -1,5 +1,3 @@
----
-
 # Backend API - Simple HR Web App
 
 This is the backend API for a simple Human Resources (HR) web application, designed for startups and SMEs. Built with Node.js, Express, TypeScript, and PostgreSQL, this API provides core functionalities for human resource management.
