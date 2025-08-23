@@ -6,6 +6,9 @@ backend/node_modules
 frontend/.env
 backend/.env
 
+# Uploaded files
+backend/uploads
+
 # Build outputs
 frontend/.next
 frontend/out
