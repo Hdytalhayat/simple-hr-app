@@ -29,7 +29,7 @@ Step-by-step installation and setup instructions will be documented here.
 ## 🚀 Backend (API)
 **Stack**: Node.js (Express + TypeScript), PostgreSQL, Redis  
 
-[Backend Documentation](./backend/README.md)
+[Backend Documentation](./backend/readme.md)
 
 ---
 
