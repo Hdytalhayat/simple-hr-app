@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, LogOut, Briefcase } from 'lucide-react';
+import { Users, Calendar, LogOut, Briefcase, DollarSign } from 'lucide-react'; 
 import { useAuth } from '@/context/AuthContext';
 
 // Define the sidebar navigation links
@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/karyawan', label: 'Karyawan', icon: Users, roles: ['Admin', 'HR'] },
   { href: '/absensi', label: 'Absensi', icon: Calendar, roles: ['Admin', 'HR', 'Karyawan'] },
   { href: '/cuti', label: 'Cuti', icon: Briefcase, roles: ['Admin', 'HR', 'Karyawan'] },
+  { href: '/gaji', label: 'Gaji', icon: DollarSign, roles: ['Admin', 'HR', 'Karyawan'] },
 ];
 
 export default function Sidebar() {
