@@ -44,8 +44,8 @@ Ensure your machine has the following software installed:
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/USERNAME/REPO-NAME.git
-cd REPO-NAME/backend
+git clone https://github.com/Hdytalhayat/simple-hr-app.git
+cd simple-hr-app/backend
 ```
 
 Install all required dependencies:
