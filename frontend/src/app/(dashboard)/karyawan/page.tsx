@@ -68,15 +68,15 @@ export default function KaryawanPage() {
     try {
       if (isEditMode) {
         await api.put(`/employees/${currentEmployee.id}`, currentEmployee);
-        toast.success('Data karyawan berhasil diperbarui.');
+        toast.success('Employee data updated successfully.');
       } else {
         await api.post('/employees', currentEmployee);
-        toast.success('Karyawan baru berhasil ditambahkan.');
+        toast.success('New employee added successfully.');
       }
       closeModal();
       fetchEmployees();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Terjadi kesalahan.');
+      toast.error(error.response?.data?.message || 'Something wrong.');
     } finally {
       setIsLoading(false);
     }
