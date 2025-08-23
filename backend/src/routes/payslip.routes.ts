@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import { generatePayslip, getMyPayslipHistory } from '../controllers/payslip.controller';
+import { protect, adminOrHR } from '../middleware/auth.middleware';
+
+const router = Router();
+
+/**
+ * @route   GET /api/payslips/my-history
+ * @desc    Get payslip history for the logged-in employee
+ * @access  Private (Employee)
+ */
+router.get('/my-history', protect, getMyPayslipHistory);
+
+/**
+ * @route   POST /api/payslips/generate
+ * @desc    Generate a payslip for a specific employee (Admin/HR only)
+ * @access  Private (Admin/HR)
+ */
+router.post('/generate', protect, adminOrHR, generatePayslip);
+
+export default router;

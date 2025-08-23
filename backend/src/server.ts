@@ -11,7 +11,8 @@ import employeeRoutes from './routes/employee.routes';
 import authRoutes from './routes/auth.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import leaveRoutes from './routes/leave.routes';         
-
+import salaryRoutes from './routes/salary.routes';
+import payslipRoutes from './routes/payslip.routes';
 // Load environment variables into process.env
 dotenv.config();
 
@@ -41,6 +42,12 @@ app.use('/api/attendance', attendanceRoutes);
 
 // Leave request routes (apply for leave, approve/reject leave)
 app.use('/api/leave', leaveRoutes);
+
+// salary components handles creating/updating salary components
+app.use('/api/salary-components', salaryRoutes);
+
+// payslips handles generating payslips and fetching employee-specific history
+app.use('/api/payslips', payslipRoutes);
 
 
 // ====== Server Initialization ======
