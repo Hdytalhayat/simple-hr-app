@@ -21,16 +21,15 @@ simple-hr-app/
 
 ---
 
-## 🚀 Installation (Coming Soon 🚧)
+## 🚀 Installation
 Step-by-step installation and setup instructions will be documented here.  
-Stay tuned!
 
 ---
 
 ## 🚀 Backend (API)
 **Stack**: Node.js (Express + TypeScript), PostgreSQL, Redis  
 
-*(detailed setup coming soon)*  
+[Backend Documentation](./backend/README.md)
 
 ---
 
