@@ -21,16 +21,15 @@ simple-hr-app/
 
 ---
 
-## 🚀 Installation (Coming Soon 🚧)
+## 🚀 Installation
 Step-by-step installation and setup instructions will be documented here.  
-Stay tuned!
 
 ---
 
 ## 🚀 Backend (API)
-**Stack**: Node.js (Express + TypeScript), PostgreSQL, Redis  
+**Stack**: Node.js (Express + TypeScript), PostgreSQL
 
-*(detailed setup coming soon)*  
+[Backend Documentation](./backend/readme.md)
 
 ---
 
@@ -51,7 +50,7 @@ Database schema documentation will be added soon.
 - **Frontend** → [Vercel](https://vercel.com)  
 - **Backend** → [Render](https://render.com)
 - **Database (Postgres)** → [Supabase](https://supabase.com)
-- **Redis** → [Redis Cloud](https://redis.com/try-free/)  
+- **Redis** → [Redis Cloud](https://redis.com/try-free/)  (optional)
 
 ---
 
