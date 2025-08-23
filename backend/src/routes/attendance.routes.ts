@@ -7,6 +7,7 @@ import {
   getTodayAttendance,
   getAttendanceHistory,
   getAttendanceReport,
+  exportAttendanceReport 
 } from '../controllers/attendance.controller';
 import { protect, adminOrHR } from '../middleware/auth.middleware';
 
@@ -49,5 +50,9 @@ router.get('/history', protect, getAttendanceHistory);
 // @desc    Get attendance report for all employees (optionally filter by date)
 // @access  Private (Admin/HR only)
 router.get('/report', protect, adminOrHR, getAttendanceReport);
+// @route   GET /api/attendance/report/export
+// @desc    Export attendance report as CSV (optionally filter by date) 
+// @access  Private (Admin/HR only)
+router.get('/report/export', protect, adminOrHR, exportAttendanceReport);
 
 export default router;

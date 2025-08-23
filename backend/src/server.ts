@@ -13,6 +13,9 @@ import attendanceRoutes from './routes/attendance.routes';
 import leaveRoutes from './routes/leave.routes';         
 import salaryRoutes from './routes/salary.routes';
 import payslipRoutes from './routes/payslip.routes';
+import documentRoutes from './routes/document.routes';
+
+
 // Load environment variables into process.env
 dotenv.config();
 
@@ -49,6 +52,8 @@ app.use('/api/salary-components', salaryRoutes);
 // payslips handles generating payslips and fetching employee-specific history
 app.use('/api/payslips', payslipRoutes);
 
+// document routes handles uploading and managing employee documents
+app.use('/api/documents', documentRoutes);
 
 // ====== Server Initialization ======
 // Get port number from environment variables, default to 3001 if not provided

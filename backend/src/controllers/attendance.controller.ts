@@ -1,9 +1,9 @@
 // src/controllers/attendance.controller.ts
 
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import pool from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
-
+import { createObjectCsvWriter as createCsvWriter } from 'csv-writer';
 /**
  * @desc    Employee performs Check-in
  * @route   POST /api/attendance/check-in
@@ -148,3 +148,68 @@ export const getAttendanceReport = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error while generating attendance report.' });
   }
 };
+
+// @desc    (Admin/HR) Export attendance report to CSV
+// @route   GET /api/attendance/report/export
+// @access  Private (Admin/HR)
+export const exportAttendanceReport = async (req: Request, res: Response) => {
+    const { startDate, endDate } = req.query; // Optional filter by date range
+
+    try {
+        // Base SQL query to join attendance with employee info
+        let query = `
+            SELECT a.attendance_date, e.full_name, e.department, a.check_in_time, a.check_out_time, a.status
+            FROM attendance a
+            JOIN employees e ON a.employee_id = e.id
+        `;
+        const params = [];
+
+        // Add date range filter if both startDate and endDate are provided
+        if (startDate && endDate) {
+            params.push(startDate, endDate);
+            query += ' WHERE a.attendance_date BETWEEN $1 AND $2';
+        }
+
+        // Order results by date descending and employee name ascending
+        query += ' ORDER BY a.attendance_date DESC, e.full_name ASC';
+
+        const result = await pool.query(query, params);
+
+        // Set response headers for CSV download
+        const filename = `attendance_report_${Date.now()}.csv`;
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+        // Configure CSV Writer to write directly to the response stream
+        const csvWriter = createCsvWriter({
+            path: res as any, // Stream directly to client
+            header: [
+                { id: 'attendance_date', title: 'DATE' },
+                { id: 'full_name', title: 'EMPLOYEE NAME' },
+                { id: 'department', title: 'DEPARTMENT' },
+                { id: 'check_in_time', title: 'CHECK-IN' },
+                { id: 'check_out_time', title: 'CHECK-OUT' },
+                { id: 'status', title: 'STATUS' },
+            ]
+        });
+
+        // Format data for CSV
+        const records = result.rows.map(row => ({
+            ...row,
+            attendance_date: new Date(row.attendance_date).toLocaleDateString('id-ID'),
+            check_in_time: row.check_in_time ? new Date(row.check_in_time).toLocaleTimeString('id-ID') : '-',
+            check_out_time: row.check_out_time ? new Date(row.check_out_time).toLocaleTimeString('id-ID') : '-',
+        }));
+
+        // Write records to CSV
+        await csvWriter.writeRecords(records);
+
+        // End response stream
+        res.end();
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to export attendance report.' });
+    }
+};
+

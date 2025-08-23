@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { generatePayslip, getMyPayslipHistory } from '../controllers/payslip.controller';
+import { generatePayslip, getMyPayslipHistory, downloadPayslipPdf } from '../controllers/payslip.controller';
 import { protect, adminOrHR } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -17,5 +17,12 @@ router.get('/my-history', protect, getMyPayslipHistory);
  * @access  Private (Admin/HR)
  */
 router.post('/generate', protect, adminOrHR, generatePayslip);
+
+/**
+ * @route   GET /api/payslips/:payslipId/download
+ * @desc    Download a specific payslip as a PDF (Employee or Admin/HR)
+ * @access  Private (Employee can download their own; Admin/HR can download any)
+ */
+router.get('/:id/download', protect, downloadPayslipPdf);
 
 export default router;

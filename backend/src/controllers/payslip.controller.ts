@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
-
+import PDFDocument from 'pdfkit';
 /**
  * @desc    Generate a payslip for an employee
  * @route   POST /api/payslips/generate
@@ -83,3 +83,84 @@ export const getMyPayslipHistory = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error occurred.' });
   }
 };
+
+// @desc    Download payslip as a PDF
+// @route   GET /api/payslips/:id/download
+// @access  Private
+export const downloadPayslipPdf = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;           // Payslip ID from URL
+  const employeeId = req.user?.id;     // Logged-in employee ID
+  const userRole = req.user?.role;     // Logged-in user role (Admin, HR, Employee)
+
+  try {
+    // 1. Fetch payslip data joined with employee info
+    const query = `
+      SELECT p.*, e.full_name, e.job_title, e.department
+      FROM payslips p
+      JOIN employees e ON p.employee_id = e.id
+      WHERE p.id = $1
+    `;
+    const payslipRes = await pool.query(query, [id]);
+
+    if (payslipRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Payslip not found.' });
+    }
+    const payslip = payslipRes.rows[0];
+
+    // 2. Authorization: Employee can only download their own payslip unless Admin/HR
+    if (userRole !== 'Admin' && userRole !== 'HR' && payslip.employee_id !== employeeId) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    // 3. Create PDF document
+    const doc = new PDFDocument({ margin: 50, size: 'A5' });
+
+    // 4. Set response headers for file download
+    const filename = `payslip-${payslip.full_name}-${payslip.pay_period_month}-${payslip.pay_period_year}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // 5. Pipe PDF stream to response
+    doc.pipe(res);
+
+    // 6. Fill PDF content
+    // Header
+    doc.fontSize(16).font('Helvetica-Bold').text('EMPLOYEE PAYSLIP', { align: 'center' });
+    doc.fontSize(12).font('Helvetica').text('PT. Startup Keren Sekali', { align: 'center' });
+    doc.moveDown(2);
+
+    // Employee Details
+    doc.fontSize(10).font('Helvetica-Bold').text(`Name: ${payslip.full_name}`);
+    doc.font('Helvetica').text(`Position: ${payslip.job_title || '-'}`);
+    doc.text(`Period: ${payslip.pay_period_month}/${payslip.pay_period_year}`);
+    doc.moveDown();
+
+    // Earnings Details
+    doc.font('Helvetica-Bold').text('Earnings');
+    doc.font('Helvetica').text(`Basic Salary: Rp ${new Intl.NumberFormat('id-ID').format(payslip.basic_salary)}`);
+    for (const [key, value] of Object.entries(payslip.details.allowances)) {
+        doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
+    }
+    doc.font('Helvetica-Bold').text(`Total Earnings: Rp ${new Intl.NumberFormat('id-ID').format(parseFloat(payslip.basic_salary) + parseFloat(payslip.total_allowances))}`);
+    doc.moveDown();
+    
+    // Deductions
+    doc.font('Helvetica-Bold').text('Deductions');
+    for (const [key, value] of Object.entries(payslip.details.deductions)) {
+        doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
+    }
+    doc.font('Helvetica-Bold').text(`Total Deductions: Rp ${new Intl.NumberFormat('id-ID').format(payslip.total_deductions)}`);
+    doc.moveDown(2);
+    
+    // Net Salary
+    doc.fontSize(12).font('Helvetica-Bold').text(`NET SALARY: Rp ${new Intl.NumberFormat('id-ID').format(payslip.net_salary)}`, { align: 'right' });
+
+    // 7. Finalize PDF
+    doc.end();
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to generate PDF payslip.' });
+  }
+};
+
