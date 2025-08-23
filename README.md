@@ -55,3 +55,15 @@ Database schema documentation will be added soon.
 
 ---
 
+## ✅ Progress
+
+### Initial Setup
+- [x] Initialize fullstack HR app with backend & frontend setup  
+- [x] Backend API with **Express + TypeScript**  
+- [x] Type-safe endpoints for **employee authentication & CRUD**  
+- [x] **PostgreSQL schema** represented via TypeScript interface  
+- [x] Next.js frontend with **TypeScript & TailwindCSS**  
+- [x] Clean project structure ready for further development  
+ 
+---
+
