@@ -1,24 +1,36 @@
 // src/routes/employee.routes.ts
 
 import { Router } from 'express';
-import { getAllEmployees } from '../controllers/employee.controller';
+import { 
+    createEmployee, 
+    getAllEmployees, 
+    getEmployeeById, 
+    updateEmployee, 
+    deleteEmployee 
+} from '../controllers/employee.controller';
 import { protect, adminOrHR } from '../middleware/auth.middleware';
 
-// Create a new router instance for employee-related routes
 const router = Router();
 
-/**
- * @route   GET /employees
- * @desc    Get all employees
- * @access  Protected (only Admin or HR can access)
- * 
- * Middleware order:
- * 1. protect   → verifies JWT and attaches user info to the request
- * 2. adminOrHR → checks if the user role is Admin or HR
- * 3. getAllEmployees → controller that fetches employee data from DB
- */
-router.get('/', protect, adminOrHR, getAllEmployees);
+// Apply middleware: 
+// All routes below are protected (require authentication) 
+// and can only be accessed by Admin or HR roles
+router.use(protect, adminOrHR);
 
-// ... other employee routes will go here (e.g., POST, PUT, DELETE)
+// Route: /api/employees
+// - POST   → Create a new employee
+// - GET    → Get all employees
+router.route('/')
+  .post(createEmployee)
+  .get(getAllEmployees);
+
+// Route: /api/employees/:id
+// - GET    → Get a specific employee by ID
+// - PUT    → Update employee data by ID
+// - DELETE → Delete employee by ID
+router.route('/:id')
+  .get(getEmployeeById)
+  .put(updateEmployee)
+  .delete(deleteEmployee);
 
 export default router;
