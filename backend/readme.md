@@ -1,66 +1,71 @@
 ---
 
-# Backend API - Web App HR Sederhana
+# Backend API - Simple HR Web App
 
-Ini adalah backend API untuk aplikasi Human Resources (HR) sederhana, dirancang untuk startup dan UKM. Dibangun dengan Node.js, Express, TypeScript, dan PostgreSQL, API ini menyediakan fungsionalitas inti untuk manajemen sumber daya manusia.
+This is the backend API for a simple Human Resources (HR) web application, designed for startups and SMEs. Built with Node.js, Express, TypeScript, and PostgreSQL, this API provides core functionalities for human resource management.
 
-## ✅ Fitur Utama
+## ✅ Key Features
 
--   **Manajemen Karyawan:** Operasi CRUD penuh untuk data karyawan.
--   **Autentikasi & Otorisasi:** Sistem login aman berbasis JWT dengan peran (Admin, HR, Karyawan).
--   **Manajemen Absensi:** Endpoint untuk check-in, check-out, dan rekapitulasi kehadiran.
--   **Manajemen Cuti:** Sistem pengajuan dan persetujuan (approval) untuk cuti dan izin.
--   **Manajemen Gaji (Payroll):** Pengaturan komponen gaji dan generasi slip gaji bulanan.
--   **Manajemen Dokumen:** Upload dan kelola dokumen karyawan (KTP, kontrak, dll.).
--   **Laporan & Ekspor:** Kemampuan untuk mengunduh slip gaji dalam format **PDF** dan laporan absensi dalam format **CSV**.
--   **Seeder:** Skrip untuk membuat pengguna Admin pertama secara otomatis.
+* **Employee Management:** Full CRUD operations for employee data.
+* **Authentication & Authorization:** Secure login system using JWT with roles (Admin, HR, Employee).
+* **Attendance Management:** Endpoints for check-in, check-out, and attendance summaries.
+* **Leave Management:** System for submitting and approving leave requests.
+* **Payroll Management:** Set salary components and generate monthly payslips.
+* **Document Management:** Upload and manage employee documents (ID card, contract, etc.).
+* **Reports & Export:** Ability to download payslips in **PDF** format and attendance reports in **CSV** format.
+* **Seeder:** Script to automatically create the first Admin user.
 
 ## 🛠️ Tech Stack
 
--   **Runtime:** Node.js
--   **Framework:** Express.js
--   **Bahasa:** TypeScript
--   **Database:** PostgreSQL
--   **Autentikasi:** JSON Web Token (JWT)
--   **Hashing Password:** Bcrypt.js
--   **File Uploads:** Multer
--   **Generasi PDF:** `pdfkit`
--   **Generasi CSV:** `csv-writer`
--   **Driver Database:** `node-postgres` (pg)
+* **Runtime:** Node.js
+* **Framework:** Express.js
+* **Language:** TypeScript
+* **Database:** PostgreSQL
+* **Authentication:** JSON Web Token (JWT)
+* **Password Hashing:** Bcrypt.js
+* **File Uploads:** Multer
+* **PDF Generation:** `pdfkit`
+* **CSV Generation:** `csv-writer`
+* **Database Driver:** `node-postgres` (pg)
 
 ---
 
-## 🚀 Memulai
+## 🚀 Getting Started
 
-### Prasyarat
+### Prerequisites
 
-Pastikan perangkat Anda sudah terinstal perangkat lunak berikut:
--   [Node.js](https://nodejs.org/) (versi LTS direkomendasikan)
--   [PostgreSQL](https://www.postgresql.org/download/) (Server Database)
--   [Git](https://git-scm.com/) (Version Control)
--   Sebuah GUI untuk PostgreSQL seperti [pgAdmin](https://www.pgadmin.org/) atau [DBeaver](https://dbeaver.io/) (Sangat direkomendasikan)
+Ensure your machine has the following software installed:
 
-### 1. Instalasi
+* [Node.js](https://nodejs.org/) (LTS version recommended)
+* [PostgreSQL](https://www.postgresql.org/download/) (Database Server)
+* [Git](https://git-scm.com/) (Version Control)
+* A PostgreSQL GUI such as [pgAdmin](https://www.pgadmin.org/) or [DBeaver](https://dbeaver.io/) (Highly recommended)
 
-Clone repositori ini ke mesin lokal Anda:
+### 1. Installation
+
+Clone this repository to your local machine:
+
 ```bash
-git clone https://github.com/USERNAME/NAMA-REPO.git
-cd NAMA-REPO/backend
+git clone https://github.com/USERNAME/REPO-NAME.git
+cd REPO-NAME/backend
 ```
 
-Instal semua dependensi yang dibutuhkan:
+Install all required dependencies:
+
 ```bash
 npm install
 ```
 
-### 2. Konfigurasi Database
+### 2. Database Configuration
 
-1.  Buka pgAdmin atau DBeaver.
-2.  Buat database baru dengan nama, misalnya, `hr_app_db`.
-3.  Jalankan skema SQL di bawah ini pada database yang baru Anda buat untuk membuat semua tabel yang diperlukan.
+1. Open pgAdmin or DBeaver.
+2. Create a new database, for example, `hr_app_db`.
+3. Execute the SQL schema below on the new database to create all required tables.
 
-#### Skema SQL Lengkap```sql
--- Tabel Karyawan & Pengguna
+#### Complete SQL Schema
+
+```sql
+-- Employees & Users Table
 CREATE TABLE employees (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     full_name VARCHAR(255) NOT NULL,
@@ -74,7 +79,7 @@ CREATE TABLE employees (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tabel Absensi
+-- Attendance Table
 CREATE TABLE attendance (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
@@ -88,7 +93,7 @@ CREATE TABLE attendance (
     UNIQUE (employee_id, attendance_date)
 );
 
--- Tabel Pengajuan Cuti
+-- Leave Requests Table
 CREATE TABLE leave_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
@@ -102,7 +107,7 @@ CREATE TABLE leave_requests (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tabel Komponen Gaji
+-- Salary Components Table
 CREATE TABLE salary_components (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id UUID NOT NULL UNIQUE REFERENCES employees(id) ON DELETE CASCADE,
@@ -113,7 +118,7 @@ CREATE TABLE salary_components (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tabel Riwayat Slip Gaji
+-- Payslip History Table
 CREATE TABLE payslips (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
@@ -128,7 +133,7 @@ CREATE TABLE payslips (
     UNIQUE (employee_id, pay_period_month, pay_period_year)
 );
 
--- Tabel Dokumen Karyawan
+-- Employee Documents Table
 CREATE TABLE employee_documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
@@ -139,33 +144,33 @@ CREATE TABLE employee_documents (
 );
 ```
 
-### 3. Konfigurasi Environment Variables
+### 3. Environment Variables Configuration
 
-Buat file `.env` di dalam direktori `backend`. Salin konten dari `.env.example` (jika ada) atau gunakan templat di bawah ini dan isi nilainya sesuai dengan konfigurasi lokal Anda.
+Create a `.env` file inside the `backend` directory. Copy the contents from `.env.example` (if available) or use the template below and fill in your local configuration values.
 
 ```env
-# Konfigurasi Database
+# Database Configuration
 DB_USER=postgres
 DB_HOST=localhost
 DB_DATABASE=hr_app_db
-DB_PASSWORD=password_database_anda
+DB_PASSWORD=your_database_password
 DB_PORT=5432
 
-# Konfigurasi Server
+# Server Configuration
 PORT=3001
 
-# Konfigurasi JWT
-# Gunakan string yang sangat acak dan panjang untuk ini
-JWT_SECRET_KEY=ini_adalah_kunci_rahasia_yang_sangat_aman_dan_panjang
+# JWT Configuration
+# Use a very long and random string here
+JWT_SECRET_KEY=this_is_a_very_secure_and_long_secret_key
 
-# Kredensial untuk Seeder Admin (Opsional, tapi direkomendasikan)
-ADMIN_EMAIL=admin@perusahaan.com
-ADMIN_PASSWORD=ganti_dengan_password_yang_kuat
+# Seeder Admin Credentials (Optional but recommended)
+ADMIN_EMAIL=admin@company.com
+ADMIN_PASSWORD=change_to_a_strong_password
 ```
 
-### 4. Menjalankan Seeder Admin
+### 4. Running Admin Seeder
 
-Setelah database dan `.env` siap, jalankan skrip seeder untuk membuat pengguna Admin pertama. Ini adalah langkah penting agar Anda bisa login ke sistem.
+Once the database and `.env` file are ready, run the seeder script to create the first Admin user. This is crucial to be able to log in to the system.
 
 ```bash
 npm run seed:admin
@@ -173,58 +178,65 @@ npm run seed:admin
 
 ---
 
-## ධ Menjalankan Aplikasi
+## ධ Running the Application
 
-### Mode Development
-Untuk menjalankan server dalam mode development dengan hot-reload (otomatis restart saat ada perubahan kode):
+### Development Mode
+
+Run the server in development mode with hot-reload (automatically restarts on code changes):
+
 ```bash
 npm run dev
 ```
-Server akan berjalan di `http://localhost:3001` (atau port yang Anda tentukan di `.env`).
 
-### Mode Produksi
-Untuk production, pertama-tama build kode TypeScript menjadi JavaScript:
+The server will run at `http://localhost:3001` (or the port specified in `.env`).
+
+### Production Mode
+
+For production, first build TypeScript code into JavaScript:
+
 ```bash
 npm run build
 ```
-Perintah ini akan membuat direktori `dist` yang berisi file JavaScript hasil kompilasi. Kemudian, jalankan server dari direktori tersebut:
+
+This will create a `dist` directory containing compiled JavaScript files. Then run the server from that directory:
+
 ```bash
 npm run start
 ```
 
 ---
 
-## 🗺️ Dokumentasi API Endpoints
+## 🗺️ API Endpoints Documentation
 
-Semua endpoint di bawah ini memiliki prefix `/api`.
+All endpoints below use the `/api` prefix.
 
-| Method | Endpoint | Deskripsi | Akses |
-| --- | --- | --- | --- |
-| **Authentication** | | | |
-| `POST` | `/auth/login` | Login untuk mendapatkan JWT. | Publik |
-| **Employees** | | | |
-| `POST` | `/employees` | Membuat karyawan baru. | Admin/HR |
-| `GET` | `/employees` | Mendapatkan semua karyawan. | Admin/HR |
-| `GET` | `/employees/:id` | Mendapatkan detail satu karyawan. | Admin/HR |
-| `PUT` | `/employees/:id` | Memperbarui data karyawan. | Admin/HR |
-| `DELETE` | `/employees/:id` | Menghapus karyawan. | Admin/HR |
-| **Attendance** | | | |
-| `POST` | `/attendance/check-in` | Karyawan melakukan check-in. | Karyawan |
-| `PATCH` | `/attendance/check-out`| Karyawan melakukan check-out. | Karyawan |
-| `GET` | `/attendance/today` | Status absensi hari ini. | Karyawan |
-| `GET` | `/attendance/history` | Riwayat absensi pribadi. | Karyawan |
-| `GET` | `/attendance/report` | Rekap absensi semua karyawan. | Admin/HR |
-| `GET` | `/attendance/report/export` | Ekspor laporan absensi (CSV). | Admin/HR |
-| **Leave Requests** | | | |
-| `POST` | `/leave/request` | Karyawan mengajukan cuti. | Karyawan |
-| `GET` | `/leave/my-requests` | Riwayat pengajuan cuti pribadi. | Karyawan |
-| `GET` | `/leave/all-requests` | Semua pengajuan cuti (untuk approval).| Admin/HR |
-| `PATCH` | `/leave/:id/status` | Menyetujui/menolak pengajuan cuti. | Admin/HR |
-| **Salary & Payslips** | | | |
-| `POST` | `/salary-components/:id` | Menetapkan komponen gaji karyawan. | Admin/HR |
-| `POST` | `/payslips/generate` | Generate slip gaji untuk karyawan. | Admin/HR |
-| `GET` | `/payslips/my-history` | Riwayat slip gaji pribadi. | Karyawan |
-| `GET` | `/payslips/:id/download` | Download slip gaji (PDF). | Karyawan & Admin/HR |
-| **Documents** | | | |
-| `POST` | `/documents/upload/:id` | Upload dokumen untuk karyawan. | Admin/HR |
-| `GET` | `/documents/:id` | Daftar dokumen milik karyawan. | Admin/HR |
+| Method                | Endpoint                    | Description                            | Access              |
+| --------------------- | --------------------------- | -------------------------------------- | ------------------- |
+| **Authentication**    |                             |                                        |                     |
+| `POST`                | `/auth/login`               | Login to obtain JWT.                   | Public              |
+| **Employees**         |                             |                                        |                     |
+| `POST`                | `/employees`                | Create a new employee.                 | Admin/HR            |
+| `GET`                 | `/employees`                | Get all employees.                     | Admin/HR            |
+| `GET`                 | `/employees/:id`            | Get details of one employee.           | Admin/HR            |
+| `PUT`                 | `/employees/:id`            | Update employee data.                  | Admin/HR            |
+| `DELETE`              | `/employees/:id`            | Delete an employee.                    | Admin/HR            |
+| **Attendance**        |                             |                                        |                     |
+| `POST`                | `/attendance/check-in`      | Employee check-in.                     | Employee            |
+| `PATCH`               | `/attendance/check-out`     | Employee check-out.                    | Employee            |
+| `GET`                 | `/attendance/today`         | Today's attendance status.             | Employee            |
+| `GET`                 | `/attendance/history`       | Personal attendance history.           | Employee            |
+| `GET`                 | `/attendance/report`        | Attendance summary for all employees.  | Admin/HR            |
+| `GET`                 | `/attendance/report/export` | Export attendance report (CSV).        | Admin/HR            |
+| **Leave Requests**    |                             |                                        |                     |
+| `POST`                | `/leave/request`            | Submit a leave request.                | Employee            |
+| `GET`                 | `/leave/my-requests`        | Personal leave request history.        | Employee            |
+| `GET`                 | `/leave/all-requests`       | All leave requests (for approval).     | Admin/HR            |
+| `PATCH`               | `/leave/:id/status`         | Approve/deny leave requests.           | Admin/HR            |
+| **Salary & Payslips** |                             |                                        |                     |
+| `POST`                | `/salary-components/:id`    | Set salary components for an employee. | Admin/HR            |
+| `POST`                | `/payslips/generate`        | Generate payslip for an employee.      | Admin/HR            |
+| `GET`                 | `/payslips/my-history`      | Personal payslip history.              | Employee            |
+| `GET`                 | `/payslips/:id/download`    | Download payslip (PDF).                | Employee & Admin/HR |
+| **Documents**         |                             |                                        |                     |
+| `POST`                | `/documents/upload/:id`     | Upload document for an employee.       | Admin/HR            |
+| `GET`                 | `/documents/:id`            | List documents of an employee.         | Admin/HR            |
