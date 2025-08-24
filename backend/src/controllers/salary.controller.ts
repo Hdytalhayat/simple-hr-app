@@ -37,3 +37,15 @@ export const upsertSalaryComponent = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error occurred.' });
   }
 };
+export const getSalaryComponentByEmployeeId = async (req: Request, res: Response) => {
+  const { employeeId } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM salary_components WHERE employee_id = $1', [employeeId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Komponen gaji tidak ditemukan.' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+  }
+};
