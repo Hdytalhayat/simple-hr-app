@@ -36,7 +36,7 @@ Step-by-step installation and setup instructions will be documented here.
 ## 💻 Frontend (Dashboard)
 **Stack**: Next.js (React + TypeScript + TailwindCSS)  
 
-*(detailed setup coming soon)*  
+[Frontend Documentation](./frontend/README.md)
 
 ---
 
