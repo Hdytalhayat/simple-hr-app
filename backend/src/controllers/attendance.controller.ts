@@ -3,7 +3,6 @@
 import { Request, Response } from 'express';
 import pool from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
-import { createObjectCsvWriter as createCsvWriter } from 'csv-writer';
 /**
  * @desc    Employee performs Check-in
  * @route   POST /api/attendance/check-in
@@ -153,63 +152,76 @@ export const getAttendanceReport = async (req: AuthRequest, res: Response) => {
 // @route   GET /api/attendance/report/export
 // @access  Private (Admin/HR)
 export const exportAttendanceReport = async (req: Request, res: Response) => {
-    const { startDate, endDate } = req.query; // Optional filter by date range
+    const { startDate, endDate } = req.query as { startDate?: string, endDate?: string };
 
     try {
-        // Base SQL query to join attendance with employee info
+        // 1. Base query to fetch attendance data and join with employees
         let query = `
             SELECT a.attendance_date, e.full_name, e.department, a.check_in_time, a.check_out_time, a.status
             FROM attendance a
             JOIN employees e ON a.employee_id = e.id
         `;
-        const params = [];
+        const params: any[] = [];
 
-        // Add date range filter if both startDate and endDate are provided
+        // 2. Add WHERE condition if date filter is provided
         if (startDate && endDate) {
             params.push(startDate, endDate);
             query += ' WHERE a.attendance_date BETWEEN $1 AND $2';
         }
 
-        // Order results by date descending and employee name ascending
+        // 3. Sort by latest date first, then by employee name
         query += ' ORDER BY a.attendance_date DESC, e.full_name ASC';
 
+        // 4. Execute query
         const result = await pool.query(query, params);
+        
+        // --- CSV CREATION MANUALLY ---
 
-        // Set response headers for CSV download
-        const filename = `attendance_report_${Date.now()}.csv`;
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        // 5. Define CSV headers
+        const headers = ['DATE', 'EMPLOYEE NAME', 'DEPARTMENT', 'CHECK-IN', 'CHECK-OUT', 'STATUS'];
+        
+        // 6. Utility function to escape special characters for CSV
+        const escapeCsvField = (field: any) => {
+            if (field === null || field === undefined) {
+                return '';
+            }
+            const stringField = String(field);
+            // If field contains comma, quotes, or newline → wrap in double quotes
+            if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+                return `"${stringField.replace(/"/g, '""')}"`;
+            }
+            return stringField;
+        };
 
-        // Configure CSV Writer to write directly to the response stream
-        const csvWriter = createCsvWriter({
-            path: res as any, // Stream directly to client
-            header: [
-                { id: 'attendance_date', title: 'DATE' },
-                { id: 'full_name', title: 'EMPLOYEE NAME' },
-                { id: 'department', title: 'DEPARTMENT' },
-                { id: 'check_in_time', title: 'CHECK-IN' },
-                { id: 'check_out_time', title: 'CHECK-OUT' },
-                { id: 'status', title: 'STATUS' },
-            ]
+        // 7. Map each row into CSV line
+        const csvRows = result.rows.map(row => {
+            const date = new Date(row.attendance_date).toLocaleDateString('id-ID');
+            const checkIn = row.check_in_time ? new Date(row.check_in_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+            const checkOut = row.check_out_time ? new Date(row.check_out_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+            
+            const fields = [date, row.full_name, row.department, checkIn, checkOut, row.status];
+            return fields.map(escapeCsvField).join(',');
         });
 
-        // Format data for CSV
-        const records = result.rows.map(row => ({
-            ...row,
-            attendance_date: new Date(row.attendance_date).toLocaleDateString('id-ID'),
-            check_in_time: row.check_in_time ? new Date(row.check_in_time).toLocaleTimeString('id-ID') : '-',
-            check_out_time: row.check_out_time ? new Date(row.check_out_time).toLocaleTimeString('id-ID') : '-',
-        }));
+        // 8. Combine header and data rows
+        const csvContent = [
+            headers.join(','),   // header
+            ...csvRows           // data
+        ].join('\n');
 
-        // Write records to CSV
-        await csvWriter.writeRecords(records);
+        // --- END OF CSV CREATION ---
 
-        // End response stream
-        res.end();
+        // 9. Set response headers to download CSV file
+        const filename = `attendance_report_${startDate}_${endDate}.csv`;
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        
+        // 10. Send CSV response
+        res.status(200).send(csvContent);
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Failed to export attendance report.' });
+        // 11. Error handling if something goes wrong
+        console.error("Error while exporting attendance report:", error);
+        res.status(500).json({ message: 'Failed to export report.' });
     }
 };
-
