@@ -15,7 +15,7 @@ interface LeaveRequest {
   start_date: string;
   end_date: string;
   reason: string;
-  status: 'Pending' | 'Disetujui' | 'Ditolak'; // Pending, Approved, Rejected
+  status: 'Pending' | 'Approved' | 'Rejected'; // Pending, Approved, Rejected
   full_name?: string; // Optional: employee name, needed for admin view
 }
 
@@ -35,8 +35,8 @@ const formatDate = (dateString: string) =>
 const LeaveStatusBadge = ({ status }: { status: LeaveRequest['status'] }) => {
   const colors = {
     Pending: 'bg-yellow-100 text-yellow-800',
-    Disetujui: 'bg-green-100 text-green-800',
-    Ditolak: 'bg-red-100 text-red-800',
+    Approved: 'bg-green-100 text-green-800',
+    Rejected: 'bg-red-100 text-red-800',
   };
   return (
     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colors[status]}`}>
@@ -91,7 +91,7 @@ export default function CutiPage() {
   };
 
   // Handle updating the status of a leave request (Admin/HR only)
-  const handleUpdateStatus = async (id: string, status: 'Disetujui' | 'Ditolak') => {
+  const handleUpdateStatus = async (id: string, status: 'Approved' | 'Rejected') => {
     if (window.confirm(`Are you sure you want to ${status.toLowerCase()} this request?`)) {
       try {
         await api.patch(`/leave/${id}/status`, { status });
@@ -153,13 +153,13 @@ export default function CutiPage() {
                   {isAdminView && req.status === 'Pending' ? (
                     <>
                       <button
-                        onClick={() => handleUpdateStatus(req.id, 'Disetujui')}
+                        onClick={() => handleUpdateStatus(req.id, 'Approved')}
                         className="text-green-600 hover:text-green-900 mr-4"
                       >
                         <CheckCircle />
                       </button>
                       <button
-                        onClick={() => handleUpdateStatus(req.id, 'Ditolak')}
+                        onClick={() => handleUpdateStatus(req.id, 'Rejected')}
                         className="text-red-600 hover:text-red-900"
                       >
                         <XCircle />
