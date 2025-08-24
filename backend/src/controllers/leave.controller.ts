@@ -3,6 +3,8 @@
 import { Response } from 'express';
 import pool from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { sendEmail } from '../services/email.service';
+import { leaveStatusTemplate } from '../templates/email.templates';
 
 /**
  * @desc    Employee submits a leave request
@@ -107,23 +109,32 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response) => {
   }
 
   try {
-    const result = await pool.query(
-      `UPDATE leave_requests 
-       SET status = $1, approved_by = $2, updated_at = NOW() 
-       WHERE id = $3 RETURNING *`,
-      [status, approverId, requestId]
-    );
+    const query = 'UPDATE leave_requests lr SET status = $1, approved_by = $2, updated_at = NOW() FROM employees e WHERE lr.id = $3 AND lr.employee_id = e.id RETURNING lr.*, e.full_name, e.email;';
+    const result = await pool.query(query, [status, approverId, requestId]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Leave request not found.' });
     }
 
-    // TODO: Add email notification logic here in the next phase.
+    const updatedRequest = result.rows[0];
+    try {
+      const emailHtml = leaveStatusTemplate(
+        updatedRequest.full_name,
+        updatedRequest.status,
+        updatedRequest.start_date,
+        updatedRequest.end_date
+      );
 
-    res.status(200).json({
-      message: `Leave request has been ${status.toLowerCase()}.`,
-      data: result.rows[0],
-    });
+      await sendEmail({
+        to: updatedRequest.email,
+        subject: `Updated Status of Your Leave: ${updatedRequest.status}`,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Failed to send leave notification email:", emailError);
+    }
+
+    res.status(200).json({ message: `Pengajuan cuti berhasil di-${status.toLowerCase()}.`, data: updatedRequest });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error occurred.' });

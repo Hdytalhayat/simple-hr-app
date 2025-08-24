@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import pool from '../config/db';
 import { AuthRequest } from '../middleware/auth.middleware';
 import PDFDocument from 'pdfkit';
+import { sendEmail } from '../services/email.service';
+import { payslipNotificationTemplate } from '../templates/email.templates';
+
 /**
  * @desc    Generate a payslip for an employee
  * @route   POST /api/payslips/generate
@@ -47,9 +50,27 @@ export const generatePayslip = async (req: Request, res: Response) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [employee_id, month, year, basic_salary, total_allowances, total_deductions, net_salary, details]
     );
+    const newPayslipData = newPayslip.rows[0];
+    try {
+      const employeeRes = await pool.query('SELECT full_name, email FROM employees WHERE id = $1', [employee_id]);
+      if (employeeRes.rows.length > 0) {
+        const employee = employeeRes.rows[0];
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const period = `${monthNames[month - 1]} ${year}`;
 
+        const emailHtml = payslipNotificationTemplate(employee.full_name, period);
+
+        await sendEmail({
+          to: employee.email,
+          subject: `Slip Gaji Periode ${period} Telah Tersedia`,
+          html: emailHtml,
+        });
+      }
+    } catch (emailError) {
+      console.error("Failed to send payslip email:", emailError);
+    }
     // Respond with the generated payslip
-    res.status(201).json({ message: 'Payslip generated successfully.', data: newPayslip.rows[0] });
+    res.status(201).json({ message: 'Payslip generated successfully.', data: newPayslipData });
   } catch (error: any) {
     // Handle unique constraint error if a payslip for the period already exists
     if (error.code === '23505') {
@@ -139,19 +160,19 @@ export const downloadPayslipPdf = async (req: AuthRequest, res: Response) => {
     doc.font('Helvetica-Bold').text('Earnings');
     doc.font('Helvetica').text(`Basic Salary: Rp ${new Intl.NumberFormat('id-ID').format(payslip.basic_salary)}`);
     for (const [key, value] of Object.entries(payslip.details.allowances)) {
-        doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
+      doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
     }
     doc.font('Helvetica-Bold').text(`Total Earnings: Rp ${new Intl.NumberFormat('id-ID').format(parseFloat(payslip.basic_salary) + parseFloat(payslip.total_allowances))}`);
     doc.moveDown();
-    
+
     // Deductions
     doc.font('Helvetica-Bold').text('Deductions');
     for (const [key, value] of Object.entries(payslip.details.deductions)) {
-        doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
+      doc.text(`${key}: Rp ${new Intl.NumberFormat('id-ID').format(value as number)}`);
     }
     doc.font('Helvetica-Bold').text(`Total Deductions: Rp ${new Intl.NumberFormat('id-ID').format(payslip.total_deductions)}`);
     doc.moveDown(2);
-    
+
     // Net Salary
     doc.fontSize(12).font('Helvetica-Bold').text(`NET SALARY: Rp ${new Intl.NumberFormat('id-ID').format(payslip.net_salary)}`, { align: 'right' });
 
