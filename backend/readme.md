@@ -11,6 +11,7 @@ This is the backend API for a simple Human Resources (HR) web application, desig
 * **Payroll Management:** Set salary components and generate monthly payslips.
 * **Document Management:** Upload and manage employee documents (ID card, contract, etc.).
 * **Reports & Export:** Ability to download payslips in **PDF** format and attendance reports in **CSV** format.
+* **Email Notifications:** Automatic email notifications for leave status updates and payslip availability.
 * **Seeder:** Script to automatically create the first Admin user.
 
 ## 🛠️ Tech Stack
@@ -24,6 +25,7 @@ This is the backend API for a simple Human Resources (HR) web application, desig
 * **File Uploads:** Multer
 * **PDF Generation:** `pdfkit`
 * **CSV Generation:** `csv-writer`
+* Email Service: Nodemailer
 * **Database Driver:** `node-postgres` (pg)
 
 ---
@@ -158,10 +160,18 @@ DB_PORT=5432
 PORT=3001
 
 # JWT Configuration
-# Use a very long and random string here
-JWT_SECRET_KEY=this_is_a_very_secure_and_long_secret_key
+# Use a long, random string for this
+JWT_SECRET_KEY=this_is_a_very_long_and_secure_secret_key
 
-# Seeder Admin Credentials (Optional but recommended)
+# Email Configuration (Nodemailer with Gmail)
+# For production, use a transactional email service like SendGrid, Mailgun, etc.
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER=youremail@gmail.com
+EMAIL_PASS=your_16_digit_gmail_app_password
+
+# Admin Seeder Credentials (Optional, but recommended)
 ADMIN_EMAIL=admin@company.com
 ADMIN_PASSWORD=change_to_a_strong_password
 ```
